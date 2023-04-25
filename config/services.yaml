@@ -1,0 +1,48 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $max: "%env(DATA_PROVIDER_MAX)%"
+            $nationality: "%env(DATA_PROVIDER_NATIONALITY)%"
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    importer_processor_service:
+        class: App\Service\ImporterProcessor
+        public: true
+
+    importer_persist_service:
+        class: App\Service\ImporterProcessor
+        public: true
+
+    App\Service\Importer:
+        arguments: 
+            - $max: "%env(DATA_PROVIDER_MAX)%"
+            - $nationality: "%env(DATA_PROVIDER_NATIONALITY)%"
+            - '@importer_processor_service'
+            - '@importer_persist_service'
+
+    importer_service:
+        class: App\Service\Importer
+        public: true
+
+    customer_service:
+        class: App\Service\CustomerService
+        public: true
+
+    App\Controller\ApiController:
+        arguments: 
+            - '@importer_service'
+            - '@customer_service'
+
+    App\Command\ImportCommand:
+        arguments:
+            - '@importer_service'
